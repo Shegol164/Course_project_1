@@ -28,6 +28,7 @@ def transactions_data():
     }
     return pd.DataFrame(data)
 
+
 # Тест для функции spending_by_category
 def test_spending_by_category_no_data(transactions_data):
     # Проверяем расходы по категории "Недвижимость", которой нет в данных
@@ -46,6 +47,7 @@ def test_spending_by_category_missing_category_column(transactions_data):
     result = spending_by_category(transactions_data_missing_column, "Еда")
 
     assert result == {}
+
 
 @pytest.fixture
 def transactions():
@@ -73,6 +75,7 @@ def transactions():
         ]
     })
 
+
 def test_spending_by_category_success(transactions):
     category = "Еда"
     result = spending_by_category(transactions, category)
@@ -80,6 +83,7 @@ def test_spending_by_category_success(transactions):
     assert result["category"] == category
     assert result["date_from"] == (datetime.now() - timedelta(days=90)).strftime("%Y-%m-%d")
     assert result["date_to"] == datetime.now().strftime("%Y-%m-%d")
+
 
 def test_spending_by_category_no_expenses(transactions):
     category = "Транспорт"
@@ -90,12 +94,14 @@ def test_spending_by_category_no_expenses(transactions):
     assert result["total_expenses"] == 0
     assert "Нет расходов для категории" in str(mock_logger.warning.call_args)
 
+
 def test_spending_by_category_no_category(transactions):
     transactions_no_category = transactions.drop(columns=["Категория"])
     with patch('src.reports.logger') as mock_logger:
         result = spending_by_category(transactions_no_category, "Еда")
 
     assert result == {}
+
 
 def test_spending_by_category_with_date(transactions):
     category = "Еда"
@@ -107,10 +113,12 @@ def test_spending_by_category_with_date(transactions):
     assert result["date_from"] == (datetime.strptime(date, "%Y-%m-%d") - timedelta(days=90)).strftime("%Y-%m-%d")
     assert result["date_to"] == date
 
-#Тесты для функции log_report_to_file
+
+# Тесты для функции log_report_to_file
 @pytest.fixture
 def temp_filename(tmp_path):
     return tmp_path / "report.json"
+
 
 # Тест на успешную запись DataFrame в файл
 def test_log_report_to_file_success(temp_filename):

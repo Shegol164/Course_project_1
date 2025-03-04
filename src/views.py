@@ -1,8 +1,8 @@
 import json
 
 import pandas as pd
-
 from config import file_path, file_path1
+
 from src.utils import get_currency_rates, get_data_range, get_stock_prices, group_expenses, group_income
 
 
@@ -45,5 +45,3 @@ def analyze_data(date_str, data_range="M"):
         "Цены акций": stock_prices,
     }
     return result
-
-

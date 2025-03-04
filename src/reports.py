@@ -4,7 +4,6 @@ from functools import wraps
 from typing import Optional
 
 import pandas as pd
-
 from config import file_path
 
 # Настройка логирования

@@ -1,7 +1,9 @@
 import json
 import logging
+
 import pandas as pd
 from config import file_path
+
 from src.reports import spending_by_category
 from src.services import get_beneficial_cashback_categories
 from src.views import analyze_data

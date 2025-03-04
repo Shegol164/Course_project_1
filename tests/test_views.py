@@ -14,10 +14,10 @@ from src.utils import get_data_range, get_stock_prices, group_expenses, group_in
     [
         ("01.01.2023", "M", datetime(2023, 1, 1, 0, 0, 0), datetime(2023, 1, 31, 23, 59, 59)),
         (
-            "01.01.2023",
-            "W",
-            datetime(2022, 12, 26, 0, 0, 0),
-            datetime(2023, 1, 1, 23, 59, 59),
+                "01.01.2023",
+                "W",
+                datetime(2022, 12, 26, 0, 0, 0),
+                datetime(2023, 1, 1, 23, 59, 59),
         ),  # Corrected expected dates
         ("01.01.2023", "Y", datetime(2023, 1, 1, 0, 0, 0), datetime(2023, 12, 31, 23, 59, 59)),
         ("01.01.2023", "ALL", datetime(2021, 1, 1, 16, 44, 0), datetime(2023, 1, 1, 0, 0, 0)),
@@ -31,6 +31,7 @@ def test_get_data_range(date_str, data_range, expected_start, expected_end):
     with pytest.raises(ValueError):
         get_data_range("01.01.2023", "INVALID")
 
+
 def test_get_data_range_month():
     date_str = "15.10.2023"
     expected_start = datetime(2023, 10, 15, 0, 0, 0)
@@ -40,6 +41,7 @@ def test_get_data_range_month():
 
     assert start == expected_start
     assert end == expected_end
+
 
 def test_get_data_range_week():
     date_str = "15.10.2023 12:00:00"
@@ -51,6 +53,7 @@ def test_get_data_range_week():
     assert start == expected_start
     assert end == expected_end
 
+
 def test_get_data_range_year():
     date_str = "15.10.2023 12:30:45"
     expected_start = datetime(2023, 1, 1, 0, 0, 0)
@@ -60,6 +63,7 @@ def test_get_data_range_year():
 
     assert start == expected_start
     assert end == expected_end
+
 
 def test_get_data_range_all():
     date_str = "15.10.2023 12:30:45"
@@ -71,10 +75,12 @@ def test_get_data_range_all():
     assert start == expected_start
     assert end == expected_end
 
+
 def test_get_data_range_invalid_period():
     date_str = "15.10.2023"
     with pytest.raises(ValueError, match="Invalid period"):
         get_data_range(date_str, "INVALID")
+
 
 def test_get_data_range_no_time():
     date_str = "15.10.2023"
