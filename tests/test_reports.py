@@ -103,21 +103,113 @@ def test_spending_by_category_no_category(transactions):
     assert result == {}
 
 
+@pytest.fixture
+def temp_filename(tmp_path):
+    return tmp_path / "report.json"
+
+
+# Фикстура для создания тестовых данных
+@pytest.fixture
+def transactions():
+    return pd.DataFrame({
+        "Категория": ["Еда", "Транспорт", "Еда", "Развлечения"],
+        "Дата операции": ["2023-03-01", "2023-02-15", "2023-01-20", "2022-12-01"],
+        "Сумма операции": [-200, -100, -300, -50]
+    })
+
+
 def test_spending_by_category_with_date(transactions):
+    """Тест с указанной датой."""
     category = "Еда"
     date = "2023-04-01"
     result = spending_by_category(transactions, category, date)
 
     assert result["category"] == category
-    assert result["total_expenses"] == 300  # 200 + 100
+    assert result["total_expenses"] == -500  # -200 + -300
     assert result["date_from"] == (datetime.strptime(date, "%Y-%m-%d") - timedelta(days=90)).strftime("%Y-%m-%d")
     assert result["date_to"] == date
 
 
-# Тесты для функции log_report_to_file
-@pytest.fixture
-def temp_filename(tmp_path):
-    return tmp_path / "report.json"
+def test_spending_by_category_without_date(transactions):
+    """Тест без указания даты."""
+    category = "Еда"
+    result = spending_by_category(transactions, category)
+
+    assert result["category"] == category
+    assert result["total_expenses"] == -500  # -200 + -300
+    assert result["date_to"] == datetime.now().strftime("%Y-%m-%d")
+
+
+def test_spending_by_category_no_data(transactions):
+    """Тест на отсутствие данных для категории."""
+    category = "Аптеки"
+    result = spending_by_category(transactions, category)
+
+    assert result["category"] == category
+    assert result["total_expenses"] == 0
+
+
+def test_spending_by_category_invalid_dates(transactions):
+    """Тест на некорректные даты."""
+    transactions.loc[0, "Дата операции"] = "invalid_date"
+    category = "Еда"
+    result = spending_by_category(transactions, category)
+
+    assert result["category"] == category
+    assert result["total_expenses"] == -300  # Только корректные данные
+
+
+def test_spending_by_category_missing_columns(transactions):
+    """Тест на отсутствие необходимых колонок."""
+    transactions = transactions.drop(columns=["Дата операции"])
+    category = "Еда"
+    result = spending_by_category(transactions, category)
+
+    assert result == {}
+
+
+def test_log_report_to_file_success(temp_filename):
+    """Тест на запись данных в файл."""
+
+    @log_report_to_file(temp_filename)
+    def sample_function():
+        return pd.DataFrame({"column1": [1, 2], "column2": [3, 4]})
+
+    with patch('src.reports.logger') as mock_logger:
+        result = sample_function()
+
+    # Проверяем результат выполнения функции
+    assert isinstance(result, pd.DataFrame)
+    assert not result.empty
+
+    # Проверяем, что файл создан
+    assert os.path.exists(temp_filename)
+
+    # Проверяем содержимое JSON файла
+    with open(temp_filename) as f:
+        file_content = f.readlines()
+        assert len(file_content) == 2  # Должно быть две строки
+
+    # Проверка логов
+    mock_logger.info.assert_any_call("Проверка: являются ли данные датафреймом")
+    mock_logger.info.assert_any_call(f"Запись отчёта в файл '{temp_filename}'")
+
+
+def test_log_report_to_file_invalid_data(temp_filename):
+    """Тест на обработку некорректных данных."""
+
+    @log_report_to_file(temp_filename)
+    def sample_function():
+        return "not a dataframe"
+
+    with patch('src.reports.logger') as mock_logger:
+        result = sample_function()
+
+    # Проверяем, что файл не создан
+    assert not os.path.exists(temp_filename)
+
+    # Проверка логов
+    mock_logger.error.assert_called_with("Данные не являются датафреймом. В файл записаны не будут")
 
 
 # Тест на успешную запись DataFrame в файл
@@ -143,7 +235,7 @@ def test_log_report_to_file_success(temp_filename):
 
     # Проверка логов
     mock_logger.info.assert_any_call("Проверка: являются ли данные датафреймом")
-    mock_logger.info.assert_any_call("Запись отчёта в файл")
+    mock_logger.info.assert_any_call(f"Запись отчёта в файл '{temp_filename}'")
 
 
 # Тест на попытку записи не DataFrame
